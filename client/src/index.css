@@ -65,6 +65,57 @@ body {
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased bg-background text-foreground min-h-screen;
   }
+}
+
+/* Additional dark mode overrides for specific components */
+.dark .bg-white {
+  background-color: hsl(222.2 84% 9.9%);
+  color: hsl(210 40% 98%);
+}
+
+.dark .text-gray-700, 
+.dark .text-gray-900 {
+  color: hsl(214.3 31.8% 91.4%);
+}
+
+.dark .text-gray-500, 
+.dark .text-gray-600 {
+  color: hsl(215 20.2% 65.1%);
+}
+
+.dark .border-gray-100, 
+.dark .border-gray-200 {
+  border-color: hsl(217.2 32.6% 17.5%);
+}
+
+.dark .bg-gray-100 {
+  background-color: hsl(217.2 32.6% 17.5%);
+  color: hsl(210 40% 98%);
+}
+
+.dark .bg-gray-200 {
+  background-color: hsl(217.2 32.6% 22.5%);
+  color: hsl(210 40% 98%);
+}
+
+.dark .shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+}
+
+/* Make hover states respect dark mode */
+.dark .hover\:bg-gray-200:hover {
+  background-color: hsl(217.2 32.6% 25%);
+}
+
+.dark .hover\:text-primary:hover {
+  color: hsl(217.2 91.2% 69.8%);
+}
+
+/* Full height layout fix */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }

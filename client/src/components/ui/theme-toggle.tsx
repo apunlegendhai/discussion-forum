@@ -18,11 +18,12 @@ export function ThemeToggle() {
 
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       size="icon"
       onClick={toggleTheme}
       aria-label="Toggle theme"
       className="relative h-9 w-9 rounded-md transition-colors hover:bg-muted"
+      title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
     >
       <div className="relative">
         <Sun
@@ -36,6 +37,9 @@ export function ThemeToggle() {
           }`}
         />
       </div>
+      <span className="sr-only">
+        {theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      </span>
     </Button>
   );
 }
