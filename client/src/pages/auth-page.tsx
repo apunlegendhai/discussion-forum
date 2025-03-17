@@ -39,6 +39,10 @@ const registerSchema = insertUserSchema.extend({
 export default function AuthPage() {
   const [location, navigate] = useLocation();
   const { user, loginMutation, registerMutation } = useAuth();
+  
+  // Get tab from URL parameters
+  const searchParams = new URLSearchParams(location.split('?')[1]);
+  const defaultTab = searchParams.get('tab') === 'register' ? 'register' : 'login';
 
   // Redirect if already logged in
   useEffect(() => {

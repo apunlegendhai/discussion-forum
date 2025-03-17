@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -30,7 +31,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="bg-white shadow">
+    <header className="bg-card shadow dark:border-b dark:border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo and navigation */}
@@ -47,9 +48,9 @@ export default function Header() {
                   <a
                     className={`${
                       isActive(item.path)
-                        ? "border-primary text-gray-900"
-                        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                        ? "border-primary text-foreground"
+                        : "border-transparent text-muted-foreground hover:border-border hover:text-foreground"
+                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200`}
                   >
                     {item.name}
                   </a>
@@ -62,7 +63,7 @@ export default function Header() {
           <div className="sm:hidden flex items-center">
             <button
               type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              className="inline-flex items-center justify-center p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               aria-controls="mobile-menu"
               aria-expanded={mobileMenuOpen}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -83,16 +84,21 @@ export default function Header() {
                   className="pl-10 pr-3 py-2"
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <SearchIcon className="h-4 w-4 text-gray-400" />
+                  <SearchIcon className="h-4 w-4 text-muted-foreground" />
                 </div>
               </div>
+            </div>
+
+            {/* Theme toggle */}
+            <div className="ml-3">
+              <ThemeToggle />
             </div>
 
             {/* User menu */}
             <div className="ml-4 flex items-center md:ml-6">
               {/* Create new post button */}
               <Link href={user ? "/thread/new" : "/auth"}>
-                <Button className="bg-primary text-white hover:bg-accent">
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
                   New Post
                 </Button>
               </Link>
@@ -100,7 +106,7 @@ export default function Header() {
               {/* Notifications */}
               <button
                 type="button"
-                className="ml-3 p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                className="ml-3 p-1 rounded-full text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               >
                 <span className="sr-only">View notifications</span>
                 <BellIcon className="h-6 w-6" />
@@ -111,7 +117,7 @@ export default function Header() {
                 <div className="ml-3 relative">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="max-w-xs bg-white rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                      <button className="max-w-xs bg-card rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
                         <span className="sr-only">Open user menu</span>
                         <Avatar>
                           <AvatarImage src={user.avatar} alt={user.username} />
@@ -137,7 +143,10 @@ export default function Header() {
                   </DropdownMenu>
                 </div>
               ) : (
-                <div className="ml-3">
+                <div className="ml-3 flex space-x-2">
+                  <Link href="/auth?tab=register">
+                    <Button variant="outline">Register</Button>
+                  </Link>
                   <Link href="/auth">
                     <Button variant="outline">Login</Button>
                   </Link>
@@ -157,8 +166,8 @@ export default function Header() {
                 <a
                   className={`${
                     isActive(item.path)
-                      ? "bg-neutral border-primary text-gray-900"
-                      : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                      ? "bg-muted border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:bg-muted hover:border-border hover:text-foreground"
                   } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
                 >
                   {item.name}
@@ -174,20 +183,28 @@ export default function Header() {
                   className="pl-10 pr-3 py-2 w-full"
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <SearchIcon className="h-4 w-4 text-gray-400" />
+                  <SearchIcon className="h-4 w-4 text-muted-foreground" />
                 </div>
               </div>
+            </div>
+            {/* Theme toggle in mobile menu */}
+            <div className="px-3 py-2 flex justify-between items-center">
+              <span className="text-muted-foreground">Theme</span>
+              <ThemeToggle />
             </div>
             {/* Mobile new post button */}
             <div className="px-3 py-2">
               <Link href={user ? "/thread/new" : "/auth"}>
-                <Button className="bg-primary text-white hover:bg-accent w-full">
+                <Button className="bg-primary text-white hover:bg-primary/90 w-full">
                   New Post
                 </Button>
               </Link>
             </div>
             {!user && (
-              <div className="px-3 py-2">
+              <div className="px-3 py-2 space-y-2">
+                <Link href="/auth?tab=register">
+                  <Button variant="outline" className="w-full">Register</Button>
+                </Link>
                 <Link href="/auth">
                   <Button variant="outline" className="w-full">Login</Button>
                 </Link>
