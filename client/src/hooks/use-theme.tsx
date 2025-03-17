@@ -42,7 +42,7 @@ export const useTheme = () => {
   };
 };
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const { theme } = useTheme();
   return <>{children}</>;
 };
