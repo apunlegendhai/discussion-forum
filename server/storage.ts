@@ -9,6 +9,7 @@ import {
 import session from "express-session";
 import createMemoryStore from "memorystore";
 
+// Create the memory store type
 const MemoryStore = createMemoryStore(session);
 
 // modify the interface with any CRUD methods
@@ -92,7 +93,8 @@ export class MemStorage implements IStorage {
   private voteIdCounter: number;
   private bookmarkIdCounter: number;
   
-  sessionStore: session.SessionStore;
+  // The session store instance
+  sessionStore: ReturnType<typeof createMemoryStore>;
 
   constructor() {
     // Initialize maps

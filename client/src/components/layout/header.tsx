@@ -44,16 +44,14 @@ export default function Header() {
             {/* Desktop navigation */}
             <nav className="hidden sm:ml-6 sm:flex sm:space-x-8" aria-label="Main Navigation">
               {navItems.map((item) => (
-                <Link key={item.path} href={item.path}>
-                  <a
-                    className={`${
-                      isActive(item.path)
-                        ? "border-primary text-foreground"
-                        : "border-transparent text-muted-foreground hover:border-border hover:text-foreground"
-                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200`}
-                  >
-                    {item.name}
-                  </a>
+                <Link key={item.path} href={item.path} 
+                  className={`${
+                    isActive(item.path)
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:border-border hover:text-foreground"
+                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200`}
+                >
+                  {item.name}
                 </Link>
               ))}
             </nav>
@@ -120,18 +118,22 @@ export default function Header() {
                       <button className="max-w-xs bg-card rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
                         <span className="sr-only">Open user menu</span>
                         <Avatar>
-                          <AvatarImage src={user.avatar} alt={user.username} />
+                          <AvatarImage src={user.avatar || undefined} alt={user.username} />
                           <AvatarFallback>{user.username.substring(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem className="cursor-pointer">
-                        <Link href="/profile">Profile</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer">
-                        <Link href="/settings">Settings</Link>
-                      </DropdownMenuItem>
+                      <Link href="/profile">
+                        <DropdownMenuItem className="cursor-pointer">
+                          Profile
+                        </DropdownMenuItem>
+                      </Link>
+                      <Link href="/settings">
+                        <DropdownMenuItem className="cursor-pointer">
+                          Settings
+                        </DropdownMenuItem>
+                      </Link>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
                         className="cursor-pointer"
@@ -162,16 +164,14 @@ export default function Header() {
         <div className="sm:hidden" id="mobile-menu">
           <div className="pt-2 pb-3 space-y-1">
             {navItems.map((item) => (
-              <Link key={item.path} href={item.path}>
-                <a
-                  className={`${
-                    isActive(item.path)
-                      ? "bg-muted border-primary text-foreground"
-                      : "border-transparent text-muted-foreground hover:bg-muted hover:border-border hover:text-foreground"
-                  } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-                >
-                  {item.name}
-                </a>
+              <Link key={item.path} href={item.path}
+                className={`${
+                  isActive(item.path)
+                    ? "bg-muted border-primary text-foreground"
+                    : "border-transparent text-muted-foreground hover:bg-muted hover:border-border hover:text-foreground"
+                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+              >
+                {item.name}
               </Link>
             ))}
             {/* Mobile search */}
