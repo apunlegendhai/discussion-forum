@@ -36,3 +36,8 @@ export const useTheme = () => {
     isDark: theme === 'dark'
   };
 };
+
+export function ThemeProvider({ children }) {
+  const { theme } = useTheme();
+  return children;
+}
