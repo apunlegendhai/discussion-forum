@@ -486,14 +486,13 @@ export default function ThreadPage({ isNewThread = false }: ThreadPageProps) {
                                 {thread.category.name}
                               </span>
                               <span className="text-xs text-gray-500">Posted by</span>
-                              <Link href={`/user/${thread.author.id}`}>
-                                <a className="text-xs font-medium text-gray-900 hover:underline flex items-center">
-                                  <Avatar className="h-5 w-5 mr-1">
-                                    <AvatarImage src={thread.author.avatar} alt={thread.author.username} />
-                                    <AvatarFallback>{thread.author.username.substring(0, 2).toUpperCase()}</AvatarFallback>
-                                  </Avatar>
-                                  {thread.author.username}
-                                </a>
+                              <Link href={`/user/${thread.author.id}`}
+                                className="text-xs font-medium text-gray-900 hover:underline flex items-center">
+                                <Avatar className="h-5 w-5 mr-1">
+                                  <AvatarImage src={thread.author.avatar} alt={thread.author.username} />
+                                  <AvatarFallback>{thread.author.username.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                {thread.author.username}
                               </Link>
                               <span className="text-xs text-gray-500">{formatDate(thread.createdAt)}</span>
                             </div>
@@ -506,10 +505,9 @@ export default function ThreadPage({ isNewThread = false }: ThreadPageProps) {
                             {thread.tags?.length > 0 && (
                               <div className="flex flex-wrap gap-2 mb-4">
                                 {thread.tags.map((tag) => (
-                                  <Link key={tag.id} href={`/?tag=${tag.name}`}>
-                                    <a className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 px-2 py-1 rounded-full">
-                                      {tag.name}
-                                    </a>
+                                  <Link key={tag.id} href={`/?tag=${tag.name}`}
+                                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 px-2 py-1 rounded-full">
+                                    {tag.name}
                                   </Link>
                                 ))}
                               </div>
@@ -645,10 +643,9 @@ export default function ThreadPage({ isNewThread = false }: ThreadPageProps) {
                                     <AvatarImage src={comment.author.avatar} alt={comment.author.username} />
                                     <AvatarFallback>{comment.author.username.substring(0, 2).toUpperCase()}</AvatarFallback>
                                   </Avatar>
-                                  <Link href={`/user/${comment.author.id}`}>
-                                    <a className="text-sm font-medium text-gray-900 hover:underline">
-                                      {comment.author.username}
-                                    </a>
+                                  <Link href={`/user/${comment.author.id}`}
+                                    className="text-sm font-medium text-gray-900 hover:underline">
+                                    {comment.author.username}
                                   </Link>
                                   <span className="text-xs text-gray-500 ml-2">
                                     {formatDate(comment.createdAt)}
