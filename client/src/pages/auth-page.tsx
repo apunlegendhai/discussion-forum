@@ -84,7 +84,7 @@ export default function AuthPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-1 bg-gray-50">
+      <main className="flex-1 bg-background">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row shadow-lg rounded-lg overflow-hidden">
             {/* Hero section */}
@@ -152,8 +152,8 @@ export default function AuthPage() {
             </div>
             
             {/* Auth form section */}
-            <div className="lg:w-1/2 bg-white p-12">
-              <Tabs defaultValue="login">
+            <div className="lg:w-1/2 bg-card p-12">
+              <Tabs defaultValue={defaultTab}>
                 <TabsList className="grid w-full grid-cols-2 mb-8">
                   <TabsTrigger value="login">Login</TabsTrigger>
                   <TabsTrigger value="register">Register</TabsTrigger>
@@ -164,7 +164,7 @@ export default function AuthPage() {
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-2xl font-bold">Sign in to your account</h2>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         Enter your credentials to access your account
                       </p>
                     </div>
@@ -199,7 +199,7 @@ export default function AuthPage() {
                         />
                         <Button 
                           type="submit" 
-                          className="w-full bg-primary"
+                          className="w-full text-primary-foreground"
                           disabled={loginMutation.isPending}
                         >
                           {loginMutation.isPending ? (
@@ -221,7 +221,7 @@ export default function AuthPage() {
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-2xl font-bold">Create a new account</h2>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         Join our community and start discussing
                       </p>
                     </div>
@@ -269,7 +269,7 @@ export default function AuthPage() {
                         />
                         <Button 
                           type="submit" 
-                          className="w-full bg-primary"
+                          className="w-full text-primary-foreground"
                           disabled={registerMutation.isPending}
                         >
                           {registerMutation.isPending ? (

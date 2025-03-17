@@ -70,7 +70,7 @@ export interface IStorage {
   }>;
 
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: ReturnType<typeof createMemoryStore>;
 }
 
 export class MemStorage implements IStorage {
