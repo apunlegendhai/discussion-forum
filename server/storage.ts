@@ -7,10 +7,13 @@ import {
   type ThreadWithRelations, type CommentWithUser
 } from "@shared/schema";
 import session from "express-session";
-import createMemoryStore from "memorystore";
+import SQLiteStore from "connect-sqlite3";
 
-// Create the memory store type
-const MemoryStore = createMemoryStore(session);
+const SQLiteStoreSession = SQLiteStore(session);
+export const sessionStore = new SQLiteStoreSession({
+  db: "sessions.db",
+  dir: "./server/db",
+});
 
 // modify the interface with any CRUD methods
 // you might need
@@ -21,19 +24,19 @@ export interface IStorage {
   getUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUserStats(userId: number, stats: Partial<Omit<User, 'id' | 'username' | 'password' | 'createdAt' | 'avatar'>>): Promise<User>;
-  
+
   // Category methods
   getCategories(): Promise<Category[]>;
   getCategory(id: number): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
   incrementCategoryThreadCount(categoryId: number): Promise<Category>;
-  
+
   // Tag methods
   getTags(): Promise<Tag[]>;
   getTag(id: number): Promise<Tag | undefined>;
   getTagByName(name: string): Promise<Tag | undefined>;
   createTag(tag: InsertTag): Promise<Tag>;
-  
+
   // Thread methods
   getThreads(filter?: string, categoryId?: number, page?: number, limit?: number): Promise<ThreadWithRelations[]>;
   getThread(id: number): Promise<ThreadWithRelations | undefined>;
@@ -41,28 +44,28 @@ export interface IStorage {
   incrementThreadStats(threadId: number, field: 'viewCount' | 'commentCount' | 'bookmarkCount', amount?: number): Promise<Thread>;
   updateThreadVotes(threadId: number, amount: number): Promise<Thread>;
   getTrendingThreads(limit?: number): Promise<ThreadWithRelations[]>;
-  
+
   // Thread Tags methods
   getThreadTags(threadId: number): Promise<Tag[]>;
   addThreadTag(threadTag: InsertThreadTag): Promise<ThreadTag>;
-  
+
   // Comment methods
   getComments(threadId: number): Promise<CommentWithUser[]>;
   getComment(id: number): Promise<Comment | undefined>;
   createComment(comment: InsertComment, userId: number): Promise<Comment>;
   updateCommentVotes(commentId: number, amount: number): Promise<Comment>;
-  
+
   // Vote methods
   getVote(userId: number, threadId?: number, commentId?: number): Promise<Vote | undefined>;
   createVote(vote: InsertVote, userId: number): Promise<Vote>;
   updateVote(id: number, isUpvote: boolean): Promise<Vote>;
   deleteVote(id: number): Promise<void>;
-  
+
   // Bookmark methods
   getBookmark(userId: number, threadId: number): Promise<Bookmark | undefined>;
   createBookmark(bookmark: InsertBookmark, userId: number): Promise<Bookmark>;
   deleteBookmark(id: number): Promise<void>;
-  
+
   // Community stats
   getCommunityStats(): Promise<{
     memberCount: number;
@@ -72,7 +75,7 @@ export interface IStorage {
   }>;
 
   // Session store
-  sessionStore: ReturnType<typeof createMemoryStore>;
+  sessionStore: SQLiteStoreSession;
 }
 
 export class MemStorage implements IStorage {
@@ -84,7 +87,7 @@ export class MemStorage implements IStorage {
   private comments: Map<number, Comment>;
   private votes: Map<number, Vote>;
   private bookmarks: Map<number, Bookmark>;
-  
+
   private userIdCounter: number;
   private categoryIdCounter: number;
   private tagIdCounter: number;
@@ -93,9 +96,9 @@ export class MemStorage implements IStorage {
   private commentIdCounter: number;
   private voteIdCounter: number;
   private bookmarkIdCounter: number;
-  
+
   // The session store instance
-  sessionStore: ReturnType<typeof createMemoryStore>;
+  sessionStore: SQLiteStoreSession;
 
   constructor() {
     // Initialize maps
@@ -107,7 +110,7 @@ export class MemStorage implements IStorage {
     this.comments = new Map();
     this.votes = new Map();
     this.bookmarks = new Map();
-    
+
     // Initialize ID counters
     this.userIdCounter = 1;
     this.categoryIdCounter = 1;
@@ -119,9 +122,7 @@ export class MemStorage implements IStorage {
     this.bookmarkIdCounter = 1;
 
     // Initialize session store
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    });
+    this.sessionStore = sessionStore;
 
     // Seed initial categories
     this.seedCategories();
@@ -143,9 +144,9 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
     const currentDate = new Date();
-    const user: User = { 
-      ...insertUser, 
-      id, 
+    const user: User = {
+      ...insertUser,
+      id,
       createdAt: currentDate,
       threadsCreated: 0,
       commentsPosted: 0,
@@ -222,12 +223,12 @@ export class MemStorage implements IStorage {
   // Thread methods
   async getThreads(filter: string = 'latest', categoryId?: number, page: number = 1, limit: number = 10): Promise<ThreadWithRelations[]> {
     let threadsArray = Array.from(this.threads.values());
-    
+
     // Apply category filter if provided
     if (categoryId) {
       threadsArray = threadsArray.filter(thread => thread.categoryId === categoryId);
     }
-    
+
     // Apply sorting based on filter
     switch (filter) {
       case 'popular':
@@ -242,22 +243,22 @@ export class MemStorage implements IStorage {
         threadsArray.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         break;
     }
-    
+
     // Paginate results
     const startIndex = (page - 1) * limit;
     const paginatedThreads = threadsArray.slice(startIndex, startIndex + limit);
-    
+
     // Populate relations for each thread
     const threadsWithRelations = await Promise.all(
       paginatedThreads.map(async (thread) => {
         const author = await this.getUser(thread.userId);
         const category = await this.getCategory(thread.categoryId);
         const tags = await this.getThreadTags(thread.id);
-        
+
         if (!author || !category) {
           throw new Error('Thread relations not found');
         }
-        
+
         return {
           ...thread,
           author,
@@ -266,22 +267,22 @@ export class MemStorage implements IStorage {
         };
       })
     );
-    
+
     return threadsWithRelations;
   }
 
   async getThread(id: number): Promise<ThreadWithRelations | undefined> {
     const thread = this.threads.get(id);
     if (!thread) return undefined;
-    
+
     const author = await this.getUser(thread.userId);
     const category = await this.getCategory(thread.categoryId);
     const tags = await this.getThreadTags(thread.id);
-    
+
     if (!author || !category) {
       return undefined;
     }
-    
+
     return {
       ...thread,
       author,
@@ -293,7 +294,7 @@ export class MemStorage implements IStorage {
   async createThread(threadData: InsertThread, userId: number, tagNames: string[]): Promise<ThreadWithRelations> {
     const id = this.threadIdCounter++;
     const currentDate = new Date();
-    
+
     const thread: Thread = {
       ...threadData,
       id,
@@ -304,38 +305,38 @@ export class MemStorage implements IStorage {
       viewCount: 0,
       bookmarkCount: 0
     };
-    
+
     this.threads.set(id, thread);
-    
+
     // Increment the category's thread count
     await this.incrementCategoryThreadCount(threadData.categoryId);
-    
+
     // Increment user's thread count
     const user = await this.getUser(userId);
     if (user) {
       await this.updateUserStats(userId, { threadsCreated: user.threadsCreated + 1 });
     }
-    
+
     // Handle tags
     const threadTags: Tag[] = [];
     for (const tagName of tagNames) {
       let tag = await this.getTagByName(tagName);
-      
+
       if (!tag) {
         tag = await this.createTag({ name: tagName });
       }
-      
+
       await this.addThreadTag({ threadId: id, tagId: tag.id });
       threadTags.push(tag);
     }
-    
+
     const author = await this.getUser(userId);
     const category = await this.getCategory(threadData.categoryId);
-    
+
     if (!author || !category) {
       throw new Error('Thread relations not found');
     }
-    
+
     return {
       ...thread,
       author,
@@ -347,12 +348,12 @@ export class MemStorage implements IStorage {
   async incrementThreadStats(threadId: number, field: 'viewCount' | 'commentCount' | 'bookmarkCount', amount: number = 1): Promise<Thread> {
     const thread = this.threads.get(threadId);
     if (!thread) throw new Error('Thread not found');
-    
+
     const updatedThread: Thread = {
       ...thread,
       [field]: thread[field] + amount
     };
-    
+
     this.threads.set(threadId, updatedThread);
     return updatedThread;
   }
@@ -360,14 +361,14 @@ export class MemStorage implements IStorage {
   async updateThreadVotes(threadId: number, amount: number): Promise<Thread> {
     const thread = this.threads.get(threadId);
     if (!thread) throw new Error('Thread not found');
-    
+
     const updatedThread: Thread = {
       ...thread,
       votes: thread.votes + amount
     };
-    
+
     this.threads.set(threadId, updatedThread);
-    
+
     // Update user's upvotes received if this is an upvote
     if (amount > 0) {
       const user = await this.getUser(thread.userId);
@@ -375,43 +376,43 @@ export class MemStorage implements IStorage {
         await this.updateUserStats(thread.userId, { upvotesReceived: user.upvotesReceived + amount });
       }
     }
-    
+
     return updatedThread;
   }
 
   async getTrendingThreads(limit: number = 3): Promise<ThreadWithRelations[]> {
     const threadsArray = Array.from(this.threads.values());
-    
+
     // Calculate a trending score (based on votes and comment count, weighted for recency)
     const threadsWithScore = threadsArray.map(thread => {
       const date = new Date(thread.createdAt);
       const now = new Date();
       const ageInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
       const recencyFactor = Math.max(0.1, Math.min(1, 168 / (ageInHours + 12))); // Higher for newer threads (max effect for 1 week)
-      
+
       const score = (thread.votes * 3 + thread.commentCount * 2) * recencyFactor;
-      
+
       return {
         thread,
         score
       };
     });
-    
+
     // Sort by score and take top threads
     threadsWithScore.sort((a, b) => b.score - a.score);
     const topThreads = threadsWithScore.slice(0, limit).map(item => item.thread);
-    
+
     // Populate relations for each thread
     const threadsWithRelations = await Promise.all(
       topThreads.map(async (thread) => {
         const author = await this.getUser(thread.userId);
         const category = await this.getCategory(thread.categoryId);
         const tags = await this.getThreadTags(thread.id);
-        
+
         if (!author || !category) {
           throw new Error('Thread relations not found');
         }
-        
+
         return {
           ...thread,
           author,
@@ -420,7 +421,7 @@ export class MemStorage implements IStorage {
         };
       })
     );
-    
+
     return threadsWithRelations;
   }
 
@@ -428,13 +429,13 @@ export class MemStorage implements IStorage {
   async getThreadTags(threadId: number): Promise<Tag[]> {
     const threadTagsArray = Array.from(this.threadTags.values())
       .filter(tt => tt.threadId === threadId);
-    
+
     const tags: Tag[] = [];
     for (const tt of threadTagsArray) {
       const tag = await this.getTag(tt.tagId);
       if (tag) tags.push(tag);
     }
-    
+
     return tags;
   }
 
@@ -450,22 +451,22 @@ export class MemStorage implements IStorage {
     const commentsArray = Array.from(this.comments.values())
       .filter(comment => comment.threadId === threadId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
+
     const commentsWithUser = await Promise.all(
       commentsArray.map(async (comment) => {
         const author = await this.getUser(comment.userId);
-        
+
         if (!author) {
           throw new Error('Comment author not found');
         }
-        
+
         return {
           ...comment,
           author
         };
       })
     );
-    
+
     return commentsWithUser;
   }
 
@@ -476,7 +477,7 @@ export class MemStorage implements IStorage {
   async createComment(commentData: InsertComment, userId: number): Promise<Comment> {
     const id = this.commentIdCounter++;
     const currentDate = new Date();
-    
+
     const comment: Comment = {
       ...commentData,
       id,
@@ -484,32 +485,32 @@ export class MemStorage implements IStorage {
       createdAt: currentDate,
       votes: 0
     };
-    
+
     this.comments.set(id, comment);
-    
+
     // Increment thread's comment count
     await this.incrementThreadStats(commentData.threadId, 'commentCount');
-    
+
     // Increment user's comment count
     const user = await this.getUser(userId);
     if (user) {
       await this.updateUserStats(userId, { commentsPosted: user.commentsPosted + 1 });
     }
-    
+
     return comment;
   }
 
   async updateCommentVotes(commentId: number, amount: number): Promise<Comment> {
     const comment = this.comments.get(commentId);
     if (!comment) throw new Error('Comment not found');
-    
+
     const updatedComment: Comment = {
       ...comment,
       votes: comment.votes + amount
     };
-    
+
     this.comments.set(commentId, updatedComment);
-    
+
     // Update user's upvotes received if this is an upvote
     if (amount > 0) {
       const user = await this.getUser(comment.userId);
@@ -517,15 +518,15 @@ export class MemStorage implements IStorage {
         await this.updateUserStats(comment.userId, { upvotesReceived: user.upvotesReceived + amount });
       }
     }
-    
+
     return updatedComment;
   }
 
   // Vote methods
   async getVote(userId: number, threadId?: number, commentId?: number): Promise<Vote | undefined> {
     return Array.from(this.votes.values()).find(
-      (vote) => 
-        vote.userId === userId && 
+      (vote) =>
+        vote.userId === userId &&
         (threadId ? vote.threadId === threadId : true) &&
         (commentId ? vote.commentId === commentId : true)
     );
@@ -533,60 +534,60 @@ export class MemStorage implements IStorage {
 
   async createVote(voteData: InsertVote, userId: number): Promise<Vote> {
     const id = this.voteIdCounter++;
-    
+
     const vote: Vote = {
       ...voteData,
       id,
       userId
     };
-    
+
     this.votes.set(id, vote);
-    
+
     // Update thread or comment votes
     if (vote.threadId) {
       await this.updateThreadVotes(vote.threadId, vote.isUpvote ? 1 : -1);
     } else if (vote.commentId) {
       await this.updateCommentVotes(vote.commentId!, vote.isUpvote ? 1 : -1);
     }
-    
+
     return vote;
   }
 
   async updateVote(id: number, isUpvote: boolean): Promise<Vote> {
     const vote = this.votes.get(id);
     if (!vote) throw new Error('Vote not found');
-    
+
     // Calculate vote change amount
     const changeAmount = vote.isUpvote === isUpvote ? 0 : isUpvote ? 2 : -2;
-    
+
     const updatedVote: Vote = {
       ...vote,
       isUpvote
     };
-    
+
     this.votes.set(id, updatedVote);
-    
+
     // Update thread or comment votes
     if (vote.threadId && changeAmount !== 0) {
       await this.updateThreadVotes(vote.threadId, changeAmount);
     } else if (vote.commentId && changeAmount !== 0) {
       await this.updateCommentVotes(vote.commentId, changeAmount);
     }
-    
+
     return updatedVote;
   }
 
   async deleteVote(id: number): Promise<void> {
     const vote = this.votes.get(id);
     if (!vote) throw new Error('Vote not found');
-    
+
     // Update thread or comment votes
     if (vote.threadId) {
       await this.updateThreadVotes(vote.threadId, vote.isUpvote ? -1 : 1);
     } else if (vote.commentId) {
       await this.updateCommentVotes(vote.commentId, vote.isUpvote ? -1 : 1);
     }
-    
+
     this.votes.delete(id);
   }
 
@@ -599,28 +600,28 @@ export class MemStorage implements IStorage {
 
   async createBookmark(bookmarkData: InsertBookmark, userId: number): Promise<Bookmark> {
     const id = this.bookmarkIdCounter++;
-    
+
     const bookmark: Bookmark = {
       ...bookmarkData,
       id,
       userId
     };
-    
+
     this.bookmarks.set(id, bookmark);
-    
+
     // Increment thread's bookmark count
     await this.incrementThreadStats(bookmarkData.threadId, 'bookmarkCount');
-    
+
     return bookmark;
   }
 
   async deleteBookmark(id: number): Promise<void> {
     const bookmark = this.bookmarks.get(id);
     if (!bookmark) throw new Error('Bookmark not found');
-    
+
     // Decrement thread's bookmark count
     await this.incrementThreadStats(bookmark.threadId, 'bookmarkCount', -1);
-    
+
     this.bookmarks.delete(id);
   }
 
@@ -648,7 +649,7 @@ export class MemStorage implements IStorage {
       { name: 'Business', colorClass: 'bg-error' },
       { name: 'General', colorClass: 'bg-secondary' }
     ];
-    
+
     categoriesData.forEach(category => {
       this.createCategory(category);
     });
@@ -664,7 +665,7 @@ export class MemStorage implements IStorage {
       { name: 'ux' },
       { name: 'node' }
     ];
-    
+
     tagsData.forEach(tag => {
       this.createTag(tag);
     });
