@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 const { log } = require('../vite');
 
@@ -8,11 +7,6 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/forum'
 mongoose.connect(MONGODB_URI)
   .then(() => log('Connected to MongoDB'))
   .catch(err => log('MongoDB connection error:', err));
-
-
-
-const mongoose = require('mongoose');
-const { log } = require('../vite');
 
 // Schemas
 const userSchema = new mongoose.Schema({
@@ -42,6 +36,7 @@ const threadSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
+  tags: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tag' }],
   votes: { type: Number, default: 0 },
   commentCount: { type: Number, default: 0 },
   viewCount: { type: Number, default: 0 },
@@ -77,21 +72,7 @@ const Comment = mongoose.model('Comment', commentSchema);
 const Vote = mongoose.model('Vote', voteSchema);
 const Bookmark = mongoose.model('Bookmark', bookmarkSchema);
 
-// MongoDB connection
-const connectToMongoDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    log('MongoDB connected successfully', 'mongodb');
-    return true;
-  } catch (error) {
-    log(`MongoDB connection error: ${error.message}`, 'mongodb');
-    console.error('MongoDB connection error:', error);
-    return false;
-  }
-};
-
 module.exports = {
-  connectToMongoDB,
   mongoose,
   User,
   Category,
