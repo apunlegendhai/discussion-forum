@@ -158,7 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { threadId, commentId, isUpvote } = parsedBody.data;
       
       // Check if user already voted on this thread/comment
-      const existingVote = await storage.getVote(req.user!.id, threadId, commentId);
+      const existingVote = await storage.getVote(req.user!.id, threadId || undefined, commentId || undefined);
       
       if (existingVote) {
         // If vote is the same, remove it (toggle off)

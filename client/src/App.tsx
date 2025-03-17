@@ -16,7 +16,7 @@ function Router() {
       <Route path="/" component={HomePage} />
       <Route path="/auth" component={AuthPage} />
       <ProtectedRoute path="/thread/new" component={() => <ThreadPage isNewThread />} />
-      <Route path="/thread/:id" component={ThreadPage} />
+      <Route path="/thread/:id" component={(params) => <ThreadPage />} />
       <Route component={NotFound} />
     </Switch>
   );
