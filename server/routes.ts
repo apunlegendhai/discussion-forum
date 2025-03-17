@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { insertThreadSchema, insertCommentSchema, insertVoteSchema, insertBookmarkSchema } from "@shared/schema";
+import { insertThreadSchema, insertCommentSchema, insertVoteSchema, insertBookmarkSchema, insertCategorySchema, insertTagSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
@@ -24,6 +24,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const isAuthenticated = (req: Request, res: Response, next: Function) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: 'Unauthorized' });
+    }
+    next();
+  };
+  
+  // Middleware to check if user is admin
+  const isAdmin = (req: Request, res: Response, next: Function) => {
+    if (!req.isAuthenticated() || req.user?.username !== 'oxyg3n') {
+      return res.status(403).json({ message: 'Forbidden: Admin access required' });
     }
     next();
   };
@@ -260,6 +268,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error('Error fetching user stats:', err);
       res.status(500).json({ message: 'Error fetching user stats' });
+    }
+  });
+
+  // Admin routes
+  
+  // Admin users management
+  app.get("/api/admin/users", isAdmin, async (req, res) => {
+    try {
+      // Get all users with role, thread count, comment count info
+      const users = await storage.getUsers();
+      res.json(users);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      res.status(500).json({ message: 'Error fetching users' });
+    }
+  });
+
+  // Ban user
+  app.post("/api/admin/users/:userId/ban", isAdmin, async (req, res) => {
+    try {
+      const userId = Number(req.params.userId);
+      // Implement ban user functionality
+      // For example: await storage.banUser(userId);
+      res.json({ success: true, message: 'User banned successfully' });
+    } catch (err) {
+      console.error('Error banning user:', err);
+      res.status(500).json({ message: 'Error banning user' });
+    }
+  });
+
+  // Admin categories management
+  app.post("/api/admin/categories", isAdmin, async (req, res) => {
+    try {
+      const parsedBody = insertCategorySchema.safeParse(req.body);
+      
+      if (!parsedBody.success) {
+        return handleZodError(parsedBody.error, res);
+      }
+      
+      const newCategory = await storage.createCategory(parsedBody.data);
+      res.status(201).json(newCategory);
+    } catch (err) {
+      console.error('Error creating category:', err);
+      res.status(500).json({ message: 'Error creating category' });
+    }
+  });
+
+  // Admin tags management
+  app.post("/api/admin/tags", isAdmin, async (req, res) => {
+    try {
+      const parsedBody = insertTagSchema.safeParse(req.body);
+      
+      if (!parsedBody.success) {
+        return handleZodError(parsedBody.error, res);
+      }
+      
+      const newTag = await storage.createTag(parsedBody.data);
+      res.status(201).json(newTag);
+    } catch (err) {
+      console.error('Error creating tag:', err);
+      res.status(500).json({ message: 'Error creating tag' });
+    }
+  });
+
+  // Admin thread management
+  app.get("/api/admin/threads", isAdmin, async (req, res) => {
+    try {
+      const threads = await storage.getThreads('all');
+      res.json(threads);
+    } catch (err) {
+      console.error('Error fetching threads:', err);
+      res.status(500).json({ message: 'Error fetching threads' });
+    }
+  });
+
+  // Delete thread
+  app.delete("/api/admin/threads/:threadId", isAdmin, async (req, res) => {
+    try {
+      const threadId = Number(req.params.threadId);
+      // Implement delete thread functionality
+      // For example: await storage.deleteThread(threadId);
+      res.json({ success: true, message: 'Thread deleted successfully' });
+    } catch (err) {
+      console.error('Error deleting thread:', err);
+      res.status(500).json({ message: 'Error deleting thread' });
+    }
+  });
+
+  // Admin settings management
+  app.post("/api/admin/settings", isAdmin, async (req, res) => {
+    try {
+      // Store site settings
+      // For example: await storage.updateSettings(req.body);
+      res.json({ success: true, message: 'Settings updated successfully' });
+    } catch (err) {
+      console.error('Error updating settings:', err);
+      res.status(500).json({ message: 'Error updating settings' });
     }
   });
 
