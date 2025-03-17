@@ -2,6 +2,18 @@
 const mongoose = require('mongoose');
 const { log } = require('../vite');
 
+// Connect to MongoDB
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/forum';
+
+mongoose.connect(MONGODB_URI)
+  .then(() => log('Connected to MongoDB'))
+  .catch(err => log('MongoDB connection error:', err));
+
+
+
+const mongoose = require('mongoose');
+const { log } = require('../vite');
+
 // Schemas
 const userSchema = new mongoose.Schema({
   username: { type: String, unique: true, required: true },

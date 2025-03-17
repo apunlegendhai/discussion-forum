@@ -1,14 +1,13 @@
 
 const { User, Category, Tag, Thread, Comment, Vote, Bookmark } = require('./db/mongodb');
-const createMemoryStore = require('memorystore');
 const session = require('express-session');
-
-const MemoryStore = createMemoryStore(session);
+const MongoStore = require('connect-mongo');
 
 class MongoStorage {
   constructor() {
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
+    this.sessionStore = MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/forum',
+      ttl: 14 * 24 * 60 * 60 // = 14 days
     });
     
     // Seed initial data
@@ -119,9 +118,70 @@ class MongoStorage {
     return threadsWithTags;
   }
 
-  // Add remaining methods (createThread, getComments, etc.)
-  // ... implement all other methods similar to the original storage.ts
-  // but using Mongoose operations instead of in-memory storage
+  async createThread(threadData, userId, tagNames) {
+    const thread = new Thread({
+      ...threadData,
+      userId,
+      createdAt: new Date()
+    });
+    await thread.save();
+
+    // Handle tags
+    for (const tagName of tagNames) {
+      let tag = await this.getTagByName(tagName);
+      if (!tag) {
+        tag = await this.createTag({ name: tagName });
+      }
+      await Tag.findByIdAndUpdate(tag._id, { $addToSet: { threads: thread._id } });
+    }
+
+    return this.getThread(thread._id);
+  }
+
+  async getComments(threadId) {
+    return Comment.find({ threadId })
+      .sort('-createdAt')
+      .populate('userId', 'username avatar')
+      .exec();
+  }
+
+  async createComment(commentData, userId) {
+    const comment = new Comment({
+      ...commentData,
+      userId,
+      createdAt: new Date()
+    });
+    await comment.save();
+
+    // Update thread comment count
+    await Thread.findByIdAndUpdate(commentData.threadId, { $inc: { commentCount: 1 } });
+    
+    return comment;
+  }
+
+  async getTrendingThreads(limit = 3) {
+    return Thread.find()
+      .sort('-votes -commentCount -createdAt')
+      .limit(limit)
+      .populate('userId', 'username avatar')
+      .populate('categoryId')
+      .exec();
+  }
+
+  async getCommunityStats() {
+    const [userCount, threadCount, commentCount] = await Promise.all([
+      User.countDocuments(),
+      Thread.countDocuments(),
+      Comment.countDocuments()
+    ]);
+
+    return {
+      memberCount: userCount,
+      threadCount,
+      commentCount,
+      onlineCount: Math.floor(Math.random() * 100) + 50 // Simulated
+    };
+  }
 }
 
 const storage = new MongoStorage();
