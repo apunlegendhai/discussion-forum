@@ -1,48 +1,48 @@
-import { createContext, useContext, useState, useEffect } from "react";
 
-const ThemeContext = createContext<{
-  theme: string;
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface ThemeStore {
+  theme: 'light' | 'dark';
+  setTheme: (theme: 'light' | 'dark') => void;
   toggleTheme: () => void;
-} | undefined>(undefined);
+}
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState(() => {
-    if (typeof window === 'undefined') return 'light';
-
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
-
-    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      return "dark";
+const useThemeStore = create<ThemeStore>()(
+  persist(
+    (set) => ({
+      theme: 'light',
+      setTheme: (theme) => {
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(theme);
+        set({ theme });
+      },
+      toggleTheme: () => {
+        set((state) => {
+          const newTheme = state.theme === 'light' ? 'dark' : 'light';
+          document.documentElement.classList.remove('light', 'dark');
+          document.documentElement.classList.add(newTheme);
+          return { theme: newTheme };
+        });
+      },
+    }),
+    {
+      name: 'theme-storage',
     }
+  )
+);
 
-    return "light";
-  });
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-    root.classList.add(theme);
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
+export const useTheme = () => {
+  const { theme, setTheme, toggleTheme } = useThemeStore();
+  return {
+    theme,
+    setTheme,
+    toggleTheme,
+    isDark: theme === 'dark'
   };
+};
 
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-}
-
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
-  }
-  return context;
-}
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { theme } = useTheme();
+  return <>{children}</>;
+};
