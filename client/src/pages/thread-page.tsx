@@ -297,13 +297,11 @@ export default function ThreadPage({ isNewThread = false }: ThreadPageProps) {
           {/* Content header with breadcrumbs */}
           <div className="px-4 py-2 sm:px-0">
             <div className="flex items-center text-sm text-gray-500">
-              <Link href="/">
-                <a className="hover:text-primary">Home</a>
-              </Link>
+              <Link href="/"
+                className="hover:text-primary">Home</Link>
               <span className="mx-2">/</span>
-              <Link href="/threads">
-                <a className="hover:text-primary">All Threads</a>
-              </Link>
+              <Link href="/threads"
+                className="hover:text-primary">All Threads</Link>
               <span className="mx-2">/</span>
               <span className="text-gray-700 font-medium">
                 {isNewThread ? "Create New Thread" : thread?.title || "Thread"}
