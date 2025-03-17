@@ -52,14 +52,13 @@ export default function Sidebar({ type }: SidebarProps) {
             </>
           ) : (
             categories?.map((category) => (
-              <Link key={category.id} href={`/?categoryId=${category.id}`}>
-                <a className="flex items-center text-gray-600 hover:text-primary hover:bg-gray-50 px-2 py-2 rounded-md group">
-                  <span className={`w-2 h-2 ${category.colorClass} rounded-full mr-2`}></span>
-                  <span>{category.name}</span>
-                  <span className="ml-auto text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-1">
-                    {category.threadCount}
-                  </span>
-                </a>
+              <Link key={category.id} href={`/?categoryId=${category.id}`}
+                className="flex items-center text-gray-600 hover:text-primary hover:bg-gray-50 px-2 py-2 rounded-md group">
+                <span className={`w-2 h-2 ${category.colorClass} rounded-full mr-2`}></span>
+                <span>{category.name}</span>
+                <span className="ml-auto text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-1">
+                  {category.threadCount}
+                </span>
               </Link>
             ))
           )}
@@ -78,10 +77,9 @@ export default function Sidebar({ type }: SidebarProps) {
             </>
           ) : (
             tags?.map((tag) => (
-              <Link key={tag.id} href={`/?tag=${tag.name}`}>
-                <a className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 px-2 py-1 rounded-full">
-                  {tag.name}
-                </a>
+              <Link key={tag.id} href={`/?tag=${tag.name}`}
+                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 px-2 py-1 rounded-full">
+                {tag.name}
               </Link>
             ))
           )}
@@ -126,9 +124,8 @@ export default function Sidebar({ type }: SidebarProps) {
             )}
           </div>
           <div className="mt-4 pt-3 border-t border-gray-200">
-            <Link href="/profile">
-              <a className="text-primary text-sm font-medium hover:text-accent">View your profile →</a>
-            </Link>
+            <Link href="/profile" 
+              className="text-primary text-sm font-medium hover:text-accent">View your profile →</Link>
           </div>
         </div>
       )}
@@ -146,27 +143,24 @@ export default function Sidebar({ type }: SidebarProps) {
           ) : (
             trendingThreads?.map((thread) => (
               <div key={thread.id} className="group">
-                <Link href={`/thread/${thread.id}`}>
-                  <a className="text-sm font-medium text-gray-900 group-hover:text-primary line-clamp-2">
-                    {thread.title}
-                  </a>
+                <Link href={`/thread/${thread.id}`}
+                  className="text-sm font-medium text-gray-900 group-hover:text-primary line-clamp-2">
+                  {thread.title}
                 </Link>
                 <div className="mt-1 flex items-center text-xs text-gray-500">
                   <span>{thread.commentCount} comments</span>
                   <span className="mx-1.5">•</span>
                   <span>trending in</span>
-                  <Link href={`/?categoryId=${thread.category.id}`}>
-                    <a className="ml-1 text-primary hover:underline">{thread.category.name}</a>
-                  </Link>
+                  <Link href={`/?categoryId=${thread.category.id}`}
+                    className="ml-1 text-primary hover:underline">{thread.category.name}</Link>
                 </div>
               </div>
             ))
           )}
         </div>
         <div className="mt-4 pt-3 border-t border-gray-200">
-          <Link href="/trending">
-            <a className="text-primary text-sm font-medium hover:text-accent">View all trending →</a>
-          </Link>
+          <Link href="/trending"
+            className="text-primary text-sm font-medium hover:text-accent">View all trending →</Link>
         </div>
       </div>
 
@@ -203,9 +197,8 @@ export default function Sidebar({ type }: SidebarProps) {
           )}
         </div>
         <div className="mt-4 pt-3 border-t border-gray-200">
-          <Link href="/guidelines">
-            <a className="text-primary text-sm font-medium hover:text-accent">Community guidelines →</a>
-          </Link>
+          <Link href="/guidelines"
+            className="text-primary text-sm font-medium hover:text-accent">Community guidelines →</Link>
         </div>
       </div>
     </div>
