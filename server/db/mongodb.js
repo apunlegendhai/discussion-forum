@@ -1,12 +1,13 @@
-const mongoose = require('mongoose');
-const { log } = require('../vite');
+import mongoose from 'mongoose';
+//import User from './models/User.js'; //removed, as User is defined in the original code.
+//import Tag from './models/Tag.js'; //removed, as Tag is defined in the original code.
 
 // Connect to MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/forum';
 
 mongoose.connect(MONGODB_URI)
-  .then(() => log('Connected to MongoDB'))
-  .catch(err => log('MongoDB connection error:', err));
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Schemas
 const userSchema = new mongoose.Schema({
@@ -72,7 +73,7 @@ const Comment = mongoose.model('Comment', commentSchema);
 const Vote = mongoose.model('Vote', voteSchema);
 const Bookmark = mongoose.model('Bookmark', bookmarkSchema);
 
-module.exports = {
+export {
   mongoose,
   User,
   Category,
